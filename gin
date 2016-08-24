@@ -1,0 +1,4 @@
+#!/bin/bash
+#2013-09-04 12:04:05
+mkdir -p ~/Dropbox/.jobstat
+echo `date +'%Y-%m-%d %H:%M:%S'` "in" >> ~/Dropbox/.jobstat/`date +%m`

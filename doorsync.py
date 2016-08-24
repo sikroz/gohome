@@ -21,8 +21,15 @@ while inout_match is not None:
 	inouts.append(inout_match.group(0))
 	inout_match = inout_pattern.search(text, inout_match.end())
 
-jobstatfile = os.path.expanduser('%s/%02d' % (config.JOBSTAT_DIRECTORY, now.month))
-exist_inouts = [line.strip() for line in open(jobstatfile)]
+jobstatdir = os.path.expanduser(config.JOBSTAT_DIRECTORY)
+if not os.path.exists(jobstatdir):
+	os.mkdir(jobstatdir)
+jobstatfile = '{}/{:02}'.format(jobstatdir, now.month)
+
+if os.path.exists(jobstatfile):
+	exist_inouts = [line.strip() for line in open(jobstatfile)]
+else:
+	exist_inouts = []
 if len(exist_inouts) > 0 and inouts[0] == exist_inouts[0]:
 	should_add = False
 	for inout in inouts:

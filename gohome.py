@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import datetime
 import os
@@ -44,6 +44,15 @@ def mergeByDate(inoutslist):
 	return result
 
 def daySeconds(inoutsday):
+	if inoutsday[0][1] == 'out':
+		d = inoutsday[0][0]
+		d = datetime.datetime(d.year, d.month, d.day, 0, 0, 0)
+		inoutsday.insert(0, (d, 'in'))
+	if inoutsday[-1][1] == 'in':
+		d = inoutsday[-1][0]
+		d = datetime.datetime(d.year, d.month, d.day, 23, 59, 59)
+		inoutsday.append((d, 'out'))
+
 	inseconds = 0
 	if len(inoutsday) % 2:
 		print "То ли не вышел, то ли не вошел"

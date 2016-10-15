@@ -3,6 +3,8 @@
 import datetime
 import os
 import config
+import calendar
+
 IN = "in"
 OUT = "out"
 INCLUDE_DAYS = config.ADD_WORK_DAYS
@@ -75,7 +77,8 @@ def daySeconds(inoutsday):
 
 	fullday = inoutsday[-1][0] - inoutsday[0][0]
 	outseconds = fullday.seconds - inseconds
-	print secondsToStrtime(inseconds)
+
+	print "{weekday}, {day}: {time}".format(weekday=calendar.day_abbr[inoutsday[0][0].weekday()], day=inoutsday[0][0].day, time=secondsToStrtime(inseconds))
 	return (inseconds, outseconds)
 
 def tillYesterdaySeconds(inoutsdict):

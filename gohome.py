@@ -153,6 +153,7 @@ def main():
 			i_am_in = True
 		today_seconds_work, today_seconds_away = daySeconds(today_inouts)
 		camein = t2dt(today_inouts[0][0])
+		print
 		print 'Came in: ' + datetime.datetime.strftime(camein, '%H:%M:%S')
 		print 'Was away: %s' % (secondsToStrtime(today_seconds_away))
 		gohome = t2dt(plus(plus(camein, today_seconds_away), needMinsPerDay() * 60))
@@ -176,6 +177,7 @@ def main():
 			if len(today_inouts) % 2 and today_inouts[-1][1] == IN:
 				today_inouts.append((now, OUT)) #Типа вышли только что
 			today_seconds_work, _  = daySeconds(today_inouts)
+		print
 		total = prev_seconds + today_seconds_work
 		printTotal(total, shouldbe_minutes * 60)
 

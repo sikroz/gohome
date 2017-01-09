@@ -3,13 +3,19 @@
 import datetime
 import os
 import config
+import days
 import calendar
 
 IN = "in"
 OUT = "out"
-INCLUDE_DAYS = config.ADD_WORK_DAYS
-
-EXCLUDE_DAYS = config.SUB_WORK_DAYS
+INCLUDE_DAYS = []
+days.addDays(days.WORK_DAYS, INCLUDE_DAYS)
+EXCLUDE_DAYS = []
+days.addDays(days.OFF_DAYS, EXCLUDE_DAYS)
+try:
+	days.addDays(config.HOLYDAYS, EXCLUDE_DAYS)
+except AttributeError:
+	pass
 
 now = datetime.datetime.now()
 #now = datetime.datetime(2016, 3, 31, 23, 0, 0)

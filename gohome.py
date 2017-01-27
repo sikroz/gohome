@@ -13,7 +13,7 @@ days.addDays(days.WORK_DAYS, INCLUDE_DAYS)
 EXCLUDE_DAYS = []
 days.addDays(days.OFF_DAYS, EXCLUDE_DAYS)
 try:
-	days.addDays(config.HOLYDAYS, EXCLUDE_DAYS)
+	days.addDays(config.HOLIDAYS, EXCLUDE_DAYS)
 except AttributeError:
 	pass
 

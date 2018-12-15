@@ -1,45 +1,57 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import re
 import datetime
 import os
-import urllib2
+import urllib.request
 import config
+import logging
+
 
 def write(filename, inouts):
-	open(filename, 'w').write('\n'.join(inouts) + '\n')
+    logging.debug('write', inouts)
+    open(filename, 'w').write('\n'.join(inouts) + '\n')
 
-now = datetime.datetime.now()
-date = datetime.datetime.strftime(now, '%Y-%m')
 
-inout_pattern = re.compile('(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d) (in|out)')
-inouts = []
+def get_door_inouts(date):
+    inout_pattern = re.compile('(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d) (in|out)')
+    inouts = []
 
-log = urllib2.urlopen('http://wiki.ispsystem.net/door.py?month={}&cardnum={}&log'.format(date, config.CARDNUM))
-text = log.read()
-inout_match = inout_pattern.search(text)
-while inout_match is not None:
-	inouts.append(inout_match.group(0))
-	inout_match = inout_pattern.search(text, inout_match.end())
+    log = urllib.request.urlopen('http://wiki.ispsystem.net/door.py?month={}&cardnum={}&log'.format(date, config.CARDNUM))
+    text = log.read().decode('utf-8')
+    inout_match = inout_pattern.search(text)
+    while inout_match is not None:
+        inouts.append(inout_match.group(0))
+        inout_match = inout_pattern.search(text, inout_match.end())
+    logging.debug('door', inouts)
+    return inouts
 
-jobstatdir = os.path.expanduser(config.JOBSTAT_DIRECTORY)
-if not os.path.exists(jobstatdir):
-	os.mkdir(jobstatdir)
-jobstatfile = '{}/{:02}'.format(jobstatdir, now.month)
 
-if os.path.exists(jobstatfile):
-	exist_inouts = [line.strip() for line in open(jobstatfile)]
-else:
-	exist_inouts = []
-if len(exist_inouts) > 0 and inouts[0] == exist_inouts[0]:
-	should_add = False
-	for inout in inouts:
-		if should_add:
-			exist_inouts.append(inout)
-			continue
-		if inout == exist_inouts[-1]:
-			should_add = True
-	write(jobstatfile, exist_inouts)
-	if not should_add:
-		write(jobstatfile, inouts)
-else:
-	write(jobstatfile, inouts)
+def main():
+    now = datetime.datetime.now()
+    date = datetime.datetime.strftime(now, '%Y-%m')
+    inouts = get_door_inouts(date)
+
+    jobstatdir = os.path.expanduser(config.JOBSTAT_DIRECTORY)
+    if not os.path.exists(jobstatdir):
+        os.mkdir(jobstatdir)
+    jobstatfile = '{}/{:02}'.format(jobstatdir, now.month)
+
+    if os.path.exists(jobstatfile):
+        exist_inouts = [line.strip() for line in open(jobstatfile)]
+    else:
+        write(jobstatfile, inouts)
+        return
+    logging.debug('exist_inouts', exist_inouts)
+
+    # Дополняем новыми, не меняя старые
+    try:
+        index = inouts.index(exist_inouts[-1])
+    except ValueError:
+        write(jobstatfile, inouts)
+        return
+
+    write(jobstatfile, exist_inouts + inouts[index + 1:])
+
+
+if __name__ == '__main__':
+    main()

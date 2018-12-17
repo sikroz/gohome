@@ -8,22 +8,29 @@ import logging
 
 
 def write(filename, inouts):
-    logging.debug('write', inouts)
+    logging.debug('write %s', inouts)
     open(filename, 'w').write('\n'.join(inouts) + '\n')
 
 
 def get_door_inouts(date):
-    inout_pattern = re.compile('(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d) (in|out)')
+    inout_pattern = re.compile(r'(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d) (in|out)')
     inouts = []
 
-    log = urllib.request.urlopen('http://wiki.ispsystem.net/door.py?month={}&cardnum={}&log'.format(date, config.CARDNUM))
+    log = urllib.request.urlopen(
+        'http://wiki.ispsystem.net/door.py?month={}&cardnum={}&log'.format(date, config.CARDNUM))
     text = log.read().decode('utf-8')
     inout_match = inout_pattern.search(text)
     while inout_match is not None:
         inouts.append(inout_match.group(0))
         inout_match = inout_pattern.search(text, inout_match.end())
-    logging.debug('door', inouts)
+    logging.debug('door %s', inouts)
     return inouts
+
+
+def get_saved_inouts(jobstatfile):
+    if os.path.exists(jobstatfile):
+        return [line.strip() for line in open(jobstatfile)]
+    return None
 
 
 def main():
@@ -34,14 +41,13 @@ def main():
     jobstatdir = os.path.expanduser(config.JOBSTAT_DIRECTORY)
     if not os.path.exists(jobstatdir):
         os.mkdir(jobstatdir)
-    jobstatfile = '{}/{:02}'.format(jobstatdir, now.month)
 
-    if os.path.exists(jobstatfile):
-        exist_inouts = [line.strip() for line in open(jobstatfile)]
-    else:
+    jobstatfile = '{}/{:02}'.format(jobstatdir, now.month)
+    exist_inouts = get_saved_inouts(jobstatfile)
+    logging.debug('exist_inouts %s', exist_inouts)
+    if exist_inouts is None:
         write(jobstatfile, inouts)
         return
-    logging.debug('exist_inouts', exist_inouts)
 
     # Дополняем новыми, не меняя старые
     try:

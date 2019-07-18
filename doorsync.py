@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-import re
 import datetime
 import os
 import urllib.request
 import config
 import logging
+import json
 
 
 def write(filename, inouts):
@@ -13,16 +13,18 @@ def write(filename, inouts):
 
 
 def get_door_inouts(date):
-    inout_pattern = re.compile(r'(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d) (in|out)')
     inouts = []
 
     log = urllib.request.urlopen(
-        'http://wiki.ispsystem.net/door.py?month={}&cardnum={}&log'.format(date, config.CARDNUM))
+        'http://itools.ispsystem.net/door/monthly/{}/user/{}?json'.format(date, config.CARDNUM))
     text = log.read().decode('utf-8')
-    inout_match = inout_pattern.search(text)
-    while inout_match is not None:
-        inouts.append(inout_match.group(0))
-        inout_match = inout_pattern.search(text, inout_match.end())
+    doorjson = json.loads(text)
+    for _, obj in doorjson.items():
+        if 'times' not in obj:
+            continue
+        for t in obj["times"]:
+            inouts.append('{} {}'.format(t[0].replace('T', ' '), 'in' if t[1] in (30501,) else 'out'))
+
     logging.debug('door %s', inouts)
     return inouts
 

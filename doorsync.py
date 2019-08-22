@@ -15,15 +15,24 @@ def write(filename, inouts):
 def get_door_inouts(date):
     inouts = []
 
+    url = 'http://itools.ispsystem.net/door'
+    print(url)
     log = urllib.request.urlopen(
-        'http://itools.ispsystem.net/door/monthly/{}/user/{}?json'.format(date, config.CARDNUM))
+        '{}/monthly/{}/user/{}?json'.format(url, date, config.CARDNUM))
     text = log.read().decode('utf-8')
     doorjson = json.loads(text)
     for _, obj in doorjson.items():
         if 'times' not in obj:
             continue
         for t in obj["times"]:
-            inouts.append('{} {}'.format(t[0].replace('T', ' '), 'in' if t[1] in (30501,) else 'out'))
+            inout = None
+            if t[1] in (148898,30501,25956):
+                inout = 'in'
+            elif t[1] in (149051,26108):
+                inout = 'out'
+            else:
+                continue
+            inouts.append('{} {}'.format(t[0].replace('T', ' '), inout))
 
     logging.debug('door %s', inouts)
     return inouts
@@ -54,7 +63,7 @@ def main():
     # Дополняем новыми, не меняя старые
     try:
         index = inouts.index(exist_inouts[-1])
-    except ValueError:
+    except (ValueError,IndexError):
         write(jobstatfile, inouts)
         return
 
